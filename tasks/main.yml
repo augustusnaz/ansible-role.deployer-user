@@ -1,0 +1,45 @@
+---
+# tasks file for deployer-user
+
+- name: "Add the user '{{ deployer_user }}''"
+  user:
+    name: "{{ deployer_user }}"
+    comment: Deployer
+    shell: /bin/bash
+  become: true
+
+- name: Give the read-write-execute permissions to "{{ deployer_user }}" user for directory /var/www
+  command: "setfacl -R -m u:{{ deployer_user }}:rwx /var/www"
+  become: true
+
+- name: Give the read-write-execute permissions to "{{ deployer_user }}" user for directory /home/users
+  command: "setfacl -R -m u:{{ deployer_user }}:rwx /home/users"
+  become: true
+  when: keyhelp_installed
+
+- name: Create .ssh if it does not exist
+  file:
+    path: ~/.ssh/
+    state: directory
+  become: true
+  become_user: "{{ deployer_user }}"
+
+- name: Generate SSH key "{{ ssh_key_filename }}"
+  openssh_keypair:
+    path: "~/.ssh/{{ ssh_key_filename }}"
+    type: rsa
+    size: 4096
+    state: present
+    force: no
+  become: true
+  become_user: "{{ deployer_user }}"
+
+# - name: Deploy SSH Key
+#   authorized_key: user="{{ deployer_user }}"
+#                   key="{{ lookup('file', '/home/provision/.ssh/id_rsa.pub') }}"
+#                   state=present
+
+- name: Make sure ACL is present
+  apt:
+    name: acl
+  become: true

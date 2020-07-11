@@ -1,0 +1,4 @@
+---
+# vars file for deployer-user
+ssh_key_filename: id_rsa
+deployer_user: deployer
